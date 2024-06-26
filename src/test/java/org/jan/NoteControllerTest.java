@@ -2,7 +2,6 @@ package org.jan;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jan.model.Note;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,11 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.io.UnsupportedEncodingException;
-
 import static org.mockito.Mockito.when;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -54,6 +52,24 @@ public class NoteControllerTest {
         assertEquals("test", resultNote.text());
 
 
+    }
+
+
+    @Test
+    void testAddNote() throws Exception {
+        Note newNote = new Note("New Note");
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonNote = objectMapper.writeValueAsString(newNote);
+
+        mockMvc.perform(post("/notes/12")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(jsonNote)
+        ).andExpect(status().isOk());
+
+        Note resultNote = noteService.getNoteById("12");
+
+        assertNotNull(resultNote);
+        assertEquals("New Note", resultNote.text());
     }
 
 }
