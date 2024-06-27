@@ -1,13 +1,12 @@
 package org.jan;
 
+import jakarta.inject.Singleton;
 import org.jan.model.Note;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.stereotype.Service;
-
-@Service
+@Singleton
 public class NoteService {
 
     private final Map<String, Note> notes = new ConcurrentHashMap<>();

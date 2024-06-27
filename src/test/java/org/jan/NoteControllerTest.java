@@ -1,36 +1,32 @@
 package org.jan;
 
-import static org.junit.jupiter.api.Assertions.*;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.MediaType;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micronaut.http.client.HttpClient;
+import io.micronaut.http.client.annotation.Client;
+import io.micronaut.serde.ObjectMapper;
+import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
+import jakarta.inject.Inject;
 import org.jan.model.Note;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
-import static org.mockito.Mockito.when;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@AutoConfigureMockMvc
-@SpringBootTest
+@MicronautTest
 public class NoteControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Inject
+    @Client("/")
+    private HttpClient client;
 
-    @Autowired
+    @Inject
     private NoteService noteService;
 
-    @Autowired
-    private NoteController noteController;
+    @Inject
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -40,36 +36,24 @@ public class NoteControllerTest {
 
     @Test
     void testGetNoteById() throws Exception {
-
-        MvcResult result = mockMvc.perform(get("/notes/11")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        ObjectMapper mapper = new ObjectMapper();
-        Note resultNote = mapper.readValue(result.getResponse().getContentAsString(), Note.class);
+        String response = client.toBlocking().retrieve("/notes/11");
+        Note resultNote = objectMapper.readValue(response, Note.class);
 
         assertEquals("test", resultNote.text());
-
-
     }
-
 
     @Test
     void testAddNote() throws Exception {
         Note newNote = new Note("New Note");
-        ObjectMapper objectMapper = new ObjectMapper();
         String jsonNote = objectMapper.writeValueAsString(newNote);
 
-        mockMvc.perform(post("/notes/12")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonNote)
-        ).andExpect(status().isOk());
-
+        client.toBlocking().exchange(HttpRequest.POST("/notes/12", jsonNote)
+                .contentType(MediaType.APPLICATION_JSON), String.class);
         Note resultNote = noteService.getNoteById("12");
 
         assertNotNull(resultNote);
         assertEquals("New Note", resultNote.text());
     }
-
 }
+
+

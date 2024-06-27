@@ -1,24 +1,27 @@
 package org.jan;
 
-import lombok.RequiredArgsConstructor;
+import io.micronaut.http.annotation.Body;
+import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.Post;
+import jakarta.inject.Inject;
 import org.jan.model.Note;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
 
-@RequiredArgsConstructor
-@RestController
+@Controller
 public class NoteController {
 
-    private final NoteService noteService;
+    @Inject
+    private NoteService noteService;
 
-    @RequestMapping(value = "/notes/{id}", method = RequestMethod.GET)
-    public Note getNoteById(@PathVariable String id) {
+    @Get("/notes/{id}")
+    public Note getNoteById(String id) {
         return noteService.getNoteById(id);
     }
 
-    @RequestMapping(value = "/notes/{id}", method = RequestMethod.POST)
-    public void addNote(@PathVariable String id, @RequestBody Note note) {
+    @Post("/notes/{id}")
+    public void addNote(String id, @Body Note note) {
         noteService.addNote(id, note);
     }
+
 
 }
